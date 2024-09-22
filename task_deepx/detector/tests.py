@@ -1,8 +1,9 @@
+import io
+
 from django.core.files.uploadedfile import SimpleUploadedFile
 from PIL import Image
-import io
-from rest_framework.test import APITestCase, APIClient
 from rest_framework.response import Response
+from rest_framework.test import APIClient, APITestCase
 
 
 class DetectObjectsUnitTest(APITestCase):

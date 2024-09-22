@@ -4,17 +4,22 @@ import random
 from typing import Any, Dict, List
 
 import requests
+import typer
 from PIL import Image, ImageDraw
 
+app = typer.Typer()
 
-def detect(source: str) -> None:
+
+@app.command()
+def detect(source: str = typer.Option(..., "--source", "-s")) -> None:
     """
     Detect objects in the image using a remote detection service.
     Parameters:
         source (str): The file path to the image that needs to be analyzed.
         - An image file 'output.png' with bounding boxes drawn around detected objects.
     """
-    url = 'http://127.0.0.1:5056/detect/'
+    url = "http://127.0.0.1:8000/detect/"
+
     files = {'image': open(source, 'rb')}
 
     response = requests.post(url, files=files)
@@ -22,7 +27,7 @@ def detect(source: str) -> None:
     if response.status_code == 200:
         predictions = json.loads(response.json())
         # Save predictions in output.csv
-        with open('output.csv', 'w', newline='') as csvfile:
+        with open('result/output.csv', 'w', newline='') as csvfile:
             fieldnames = ['xmin', 'ymin', 'xmax', 'ymax', 'confidence', 'class', 'name']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
@@ -40,7 +45,7 @@ def detect(source: str) -> None:
         # Display bounding boxes and save in output.png
         img = Image.open(source)
         img_with_boxes = draw_boxes(img, predictions)
-        img_with_boxes.save('output.png')
+        img_with_boxes.save('result/output.png')
         print("Results saved to 'output.csv' and 'output.png'")
     else:
         print("Error:", response.status_code)
@@ -49,6 +54,7 @@ def detect(source: str) -> None:
 def random_color() -> str:
     """Generate a random RGB color in hex format."""
     return f'#{random.randint(0, 0xFFFFFF):06x}'
+
 
 def draw_boxes(image: Image.Image, predictions: List[Dict[str, Any]]) -> Image.Image:
     """
@@ -73,6 +79,4 @@ def draw_boxes(image: Image.Image, predictions: List[Dict[str, Any]]) -> Image.I
 
 
 if __name__ == "__main__":
-    # Ask path
-    image_path = input("Input path to image: ")
-    detect(image_path)
+    app()
